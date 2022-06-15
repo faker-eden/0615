@@ -1,0 +1,45 @@
+<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"   
+        channelSendOptions="8" 
+        channelStartOptions="3"> 
+
+        <Manager className="org.apache.catalina.ha.session.DeltaManager" 
+            expireSessionsOnShutdown="false" 
+            notifyListenersOnReplication="true"/>
+
+        <Channel className="org.apache.catalina.tribes.group.GroupChannel">
+
+            <!-- 클러스터 전송 -->
+            <Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter"> 
+                <Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender" /> 
+            </Sender>
+
+            <!-- 수신 설정 -->
+            <Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+                        address="auto" 
+                        port="4000"    
+                        autoBind="0"   
+                        selectorTimeout="5000" 
+                        maxThreads="6"/>
+
+            <!-- PING 체크 여부 
+            staticOnly: 고정멤버 
+            -->
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpPingInterceptor" staticOnly="true"/>
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.StaticMembershipInterceptor"> 
+                <Member className="org.apache.catalina.tribes.membership.StaticMember"                  
+                host="192.168.0.50" 
+                port="4000" 
+                uniqueId="{0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1}" /> 
+            </Interceptor>
+
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatchInterceptor"/>
+        </Channel>
+
+           <Valve className="org.apache.catalina.ha.tcp.ReplicationValve" 
+            filter="" />
+ 
+        <Valve className="org.apache.catalina.ha.session.JvmRouteBinderValve"/>
+   
+        <ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
+    </Cluster>
